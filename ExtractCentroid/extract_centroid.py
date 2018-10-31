@@ -225,8 +225,16 @@ class ExtractCentroid:
             fields =selectedLayer.pendingFields()
             fieldnames= [field.name() for field in fields]
 
+            temp =mem_layer.dataProvider()
+
+            counter = 0
             for f in selectedLayer.getFeatures():
-                line = ','.join(unicode(f[x]) for x in fieldnames) +'\n'
-                unicode_line = line.encode('utf-8')
-                output_file.write(unicode_line)
+                feat = QgsFeature()
+                pnt = f.geometry().centroid().asPoint()
+                feat = setGeometry(QgsGeometry.fromPoint(pnt))
+                output_file.write(feat)
+                temp.addFeatures([feat])
+                counter += 1
             output_file.close()
+            #Displays centroids on map canvas
+            QgsMapLayerRegistry.instance().addMapLayer(temp)
