@@ -22,6 +22,9 @@
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
+from qgis.core import *
+from qgis.gui import *
+from qgis.utils import iface
 # Initialize Qt resources from file resources.py
 import resources
 # Import the code for the dialog
@@ -181,7 +184,18 @@ class ExtractCentroid:
 
 
     def run(self):
-        """Run method that performs all the real work"""
+        # Select polygon layers in the map iface
+        layers = self.iface.legendInterface().layers()
+        layer_list = []
+        for layer in layers:
+            #checks if it's a polygon layer
+            if layer.geometryType() == QGis.Polygon:
+                layer_list.append(layer.name())
+        #if layer.geometryType() == Qgs.Polygon: 
+		
+		#adding layers to combobox
+        
+        self.dlg.comboBox.addItems(layer_list)
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
