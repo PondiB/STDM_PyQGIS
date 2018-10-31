@@ -21,7 +21,7 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon
+from PyQt4.QtGui import QAction, QIcon, QFileDialog
 from qgis.core import *
 from qgis.gui import *
 from qgis.utils import iface
@@ -68,6 +68,14 @@ class ExtractCentroid:
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'ExtractCentroid')
         self.toolbar.setObjectName(u'ExtractCentroid')
+
+        #Connecting pushButton to select output function
+        #self.btn = QtGui.QPushButton("pushButton",self)
+        #self.btn.clicked.connect(self.select_output_file)
+        self.dlg = ExtractCentroidDialog()
+        self.dlg.lineEdit.clear()
+        self.dlg.pushButton.clicked.connect(self.select_output_file)
+
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -182,6 +190,11 @@ class ExtractCentroid:
         # remove the toolbar
         del self.toolbar
 
+    def select_output_file(self):
+        """ Saving file as CSV  on user chosen location"""
+        filename = QFileDialog.getSaveFileName(self.dlg, "Select output file","",'.csv')
+        self.dlg.lineEdit.setText(filename)
+
 
     def run(self):
         # Select polygon layers in the map iface
@@ -204,4 +217,16 @@ class ExtractCentroid:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            pass
+            filename = self.dlg.lineEdit.text()
+            output_file = open(filename,'w')
+
+            selectedLayerIndex =self.dlg.comboBox.currentIndex()
+            selectedLayer = layers[selectedLayerIndex]
+            fields =selectedLayer.pendingFields()
+            fieldnames= [field.name() for field in fields]
+
+            for f in selectedLayer.getFeatures():
+                line = ','.join(unicode(f[x]) for x in fieldnames) +'\n'
+                unicode_line = line.encode('utf-8')
+                output_file.write(unicode_line)
+            output_file.close()
